@@ -66,7 +66,7 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
     } = {};
 
     if (parsed.data.title !== undefined) updates.title = parsed.data.title;
-    if (parsed.data.description !== undefined) updates.description = parsed.data.description;
+    if (parsed.data.description !== undefined) updates.description = parsed.data.description ?? null;
     if (parsed.data.dueDate !== undefined) {
       updates.dueDate = parsed.data.dueDate ? new Date(parsed.data.dueDate) : null;
     }
@@ -75,22 +75,22 @@ export async function PUT(req: Request, context: { params: { id: string } }) {
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { success: false, error: 'No fields provided for update.' },
+        { success: false, error: 'No updates provided.' },
         { status: 400 }
       );
     }
 
-    const existing = await prisma.task.findFirst({
-      where: { id: context.params.id, ownerId: auth.user.id }
+    const updated = await prisma.task.updateMany({
+      where: { id: context.params.id, ownerId: auth.user.id },
+      data: updates
     });
 
-    if (!existing) {
+    if (updated.count === 0) {
       return NextResponse.json({ success: false, error: 'Task not found.' }, { status: 404 });
     }
 
-    const task = await prisma.task.update({
-      where: { id: existing.id },
-      data: updates
+    const task = await prisma.task.findFirst({
+      where: { id: context.params.id, ownerId: auth.user.id }
     });
 
     return NextResponse.json({
@@ -130,5 +130,3 @@ export async function DELETE(req: Request, context: { params: { id: string } }) 
     );
   }
 }
-
-export default GET;
