@@ -1,28 +1,30 @@
-import { HTMLAttributes } from 'react';
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('rounded-lg border border-border bg-background shadow-sm', className)} {...props} />
-  );
+interface CardProps {
+  children: ReactNode;
+  className?: string;
 }
 
-export function CardHeader({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('border-b border-border p-4', className)} {...props} />
-  );
+export function Card({ children, className }: CardProps) {
+  return <div className={cn('rounded-lg border border-border bg-background p-6 shadow-sm', className)}>{children}</div>;
 }
 
-export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('p-4', className)} {...props} />
-  );
+interface CardSectionProps {
+  children: ReactNode;
+  className?: string;
 }
 
-export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={cn('border-t border-border p-4', className)} {...props} />
-  );
+export function CardHeader({ children, className }: CardSectionProps) {
+  return <div className={cn('mb-4 space-y-1', className)}>{children}</div>;
+}
+
+export function CardContent({ children, className }: CardSectionProps) {
+  return <div className={cn('space-y-2', className)}>{children}</div>;
+}
+
+export function CardFooter({ children, className }: CardSectionProps) {
+  return <div className={cn('mt-4 flex items-center justify-end', className)}>{children}</div>;
 }
 
 export default Card;

@@ -7,47 +7,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum TaskStatus {
-  todo
-  in_progress
-  done
-}
-
-enum TaskPriority {
-  low
-  medium
-  high
-}
-
 model User {
-  id           String      @id @default(cuid())
-  email        String      @unique
-  passwordHash String
-  displayName  String?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  tasks        Task[]
-  tokens       AuthToken[]
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String   @map("password_hash")
+  role         String   @default("customer")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 }
 
-model Task {
-  id          String       @id @default(cuid())
-  ownerId     String
-  owner       User         @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+model Lead {
+  id           String   @id @default(cuid())
+  name         String?
+  email        String?
+  selectedPlan String?  @map("selected_plan")
+  createdAt    DateTime @default(now()) @map("created_at")
+}
+
+model Feature {
+  id          String @id @default(cuid())
   title       String
-  description String?
-  status      TaskStatus   @default(todo)
-  priority    TaskPriority @default(medium)
-  dueDate     DateTime?
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  description String
+  icon        String
 }
 
-model AuthToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+model PricingTier {
+  id           String @id @default(cuid())
+  name         String
+  priceMonthly Float  @map("price_monthly")
+  features     String @default("[]")
+  ctaText      String @map("cta_text")
 }

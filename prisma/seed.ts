@@ -1,75 +1,72 @@
-import { PrismaClient, TaskPriority, TaskStatus } from '@prisma/client';
-import bcryptjs from 'bcryptjs';
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.authToken.deleteMany();
-  await prisma.task.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.lead.deleteMany();
+  await prisma.feature.deleteMany();
+  await prisma.pricingTier.deleteMany();
 
-  const passwordHash = await bcryptjs.hash('Password123!', 10);
-
-  const userAlice = await prisma.user.create({
-    data: {
-      email: 'alice@example.com',
-      passwordHash,
-      displayName: 'Alice Johnson'
-    }
-  });
-
-  const userBob = await prisma.user.create({
-    data: {
-      email: 'bob@example.com',
-      passwordHash,
-      displayName: 'Bob Smith'
-    }
-  });
-
-  await prisma.task.createMany({
-    data: [
-      {
-        ownerId: userAlice.id,
-        title: 'Finish onboarding checklist',
-        description: 'Complete profile setup and verify email.',
-        status: TaskStatus.in_progress,
-        priority: TaskPriority.high,
-        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
-      },
-      {
-        ownerId: userAlice.id,
-        title: 'Plan weekly sprint',
-        description: 'Review backlog and prioritize tasks for the week.',
-        status: TaskStatus.todo,
-        priority: TaskPriority.medium,
-        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
-      },
-      {
-        ownerId: userAlice.id,
-        title: 'Submit timesheet',
-        description: 'Submit Friday timesheet for approval.',
-        status: TaskStatus.done,
-        priority: TaskPriority.low,
-        dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-      },
-      {
-        ownerId: userBob.id,
-        title: 'Update project roadmap',
-        description: 'Align roadmap with Q2 goals.',
-        status: TaskStatus.in_progress,
-        priority: TaskPriority.high,
-        dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
-      },
-      {
-        ownerId: userBob.id,
-        title: 'Refactor task filters',
-        description: 'Improve search and filter performance.',
-        status: TaskStatus.todo,
-        priority: TaskPriority.medium,
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  const adminEmail = 'admin@datapulse.com';
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  if (!existingAdmin) {
+    const passwordHash = await bcrypt.hash('admin123', 10);
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        name: 'DataPulse Admin',
+        passwordHash,
+        role: 'admin'
       }
-    ]
-  });
+    });
+  }
+
+  const features = [
+    {
+      id: 'f1',
+      title: 'Real-time dashboards',
+      description: 'Live metrics with auto-refresh and proactive monitoring.',
+      icon: 'chart-line'
+    },
+    {
+      id: 'f2',
+      title: 'Custom alerts',
+      description: 'Get notified when KPIs move outside expected ranges.',
+      icon: 'bell'
+    },
+    {
+      id: 'f3',
+      title: 'Easy integrations',
+      description: 'Connect the tools you already use in minutes.',
+      icon: 'plug'
+    }
+  ];
+
+  for (const feature of features) {
+    await prisma.feature.create({ data: feature });
+  }
+
+  const pricingTiers = [
+    {
+      id: 'basic',
+      name: 'Basic',
+      priceMonthly: 29,
+      features: JSON.stringify(['Dashboards', 'Email support']),
+      ctaText: 'Start 14-day trial'
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      priceMonthly: 99,
+      features: JSON.stringify(['All Basic features', 'Custom alerts', 'Priority support']),
+      ctaText: 'Start 14-day trial'
+    }
+  ];
+
+  for (const tier of pricingTiers) {
+    await prisma.pricingTier.create({ data: tier });
+  }
 }
 
 main()

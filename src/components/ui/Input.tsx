@@ -28,12 +28,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             error ? 'border-error' : 'border-border',
             className
           )}
-          aria-invalid={!!error}
-          aria-describedby={helperText ? `${inputId}-help` : undefined}
           {...props}
         />
         {error && <p className="text-sm text-error">{error}</p>}
-        {helperText && !error && <p id={`${inputId}-help`} className="text-sm text-muted-foreground">{helperText}</p>}
+        {helperText && !error && <p className="text-sm text-muted-foreground">{helperText}</p>}
       </div>
     );
   }

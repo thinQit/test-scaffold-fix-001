@@ -4,79 +4,86 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
 import Button from '@/components/ui/Button';
-import { cn } from '@/lib/utils';
 
-const navLinks = [
-  { href: '/dashboard', label: 'Dashboard' },
-  { href: '/tasks', label: 'Tasks' },
-  { href: '/tasks/new', label: 'New Task' },
-  { href: '/profile', label: 'Profile' }
+interface NavLink {
+  label: string;
+  href: string;
+}
+
+const links: NavLink[] = [
+  { label: 'Home', href: '/' },
+  { label: 'Features', href: '/features' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Signup', href: '/signup' }
 ];
 
 export function Navigation() {
-  const { user, logout, isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
+  const { user, loading, isAuthenticated, logout } = useAuth();
 
   return (
     <header className="border-b border-border bg-background">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link href="/" className="text-lg font-semibold text-foreground">TaskManager</Link>
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4" aria-label="Primary">
+        <Link href="/" className="text-xl font-bold">DataPulse</Link>
+
         <button
-          type="button"
-          className="md:hidden inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-muted"
-          aria-label="Toggle navigation menu"
+          className="md:hidden inline-flex items-center justify-center rounded-md border border-border p-2"
+          aria-label="Toggle navigation"
           aria-expanded={open}
-          onClick={() => setOpen(prev => !prev)}
+          onClick={() => setOpen((v) => !v)}
         >
-          <span className="sr-only">Open menu</span>
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-          </svg>
+          <span className="sr-only">Menu</span>
+          <div className="space-y-1">
+            <span className="block h-0.5 w-5 bg-foreground" />
+            <span className="block h-0.5 w-5 bg-foreground" />
+            <span className="block h-0.5 w-5 bg-foreground" />
+          </div>
         </button>
-        <div className="hidden items-center gap-4 md:flex">
-          {navLinks.map(link => (
-            <Link key={link.href} href={link.href} className="text-sm font-medium text-foreground hover:text-primary">
+
+        <div className="hidden md:flex items-center gap-6">
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="text-sm font-medium text-secondary hover:text-foreground">
               {link.label}
             </Link>
           ))}
-          {isAuthenticated ? (
+          {loading ? (
+            <span className="text-sm text-secondary">Loading...</span>
+          ) : isAuthenticated && user ? (
             <div className="flex items-center gap-3">
-              <span className="text-sm text-muted-foreground">{user?.name || user?.email}</span>
-              <Button variant="outline" size="sm" onClick={logout}>Logout</Button>
+              <span className="text-sm">Hi, {user.name}</span>
+              <Button size="sm" variant="outline" onClick={logout}>Logout</Button>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button variant="primary" size="sm" asChild>
-                <Link href="/register">Sign up</Link>
-              </Button>
+              <Link href="/signup"><Button size="sm">Sign Up</Button></Link>
+              <Link href="/login"><Button size="sm" variant="ghost">Log In</Button></Link>
             </div>
           )}
         </div>
       </nav>
-      <div className={cn('md:hidden border-t border-border px-4 pb-4', open ? 'block' : 'hidden')}>
-        <div className="flex flex-col gap-2 pt-3">
-          {navLinks.map(link => (
-            <Link key={link.href} href={link.href} className="text-sm font-medium text-foreground hover:text-primary">
+
+      {open && (
+        <div className="md:hidden border-t border-border px-4 py-3 space-y-3">
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="block text-sm font-medium" onClick={() => setOpen(false)}>
               {link.label}
             </Link>
           ))}
-          {isAuthenticated ? (
-            <Button variant="outline" size="sm" onClick={logout} className="mt-2">Logout</Button>
+          {loading ? (
+            <span className="text-sm text-secondary">Loading...</span>
+          ) : isAuthenticated && user ? (
+            <div className="flex items-center gap-3">
+              <span className="text-sm">Hi, {user.name}</span>
+              <Button size="sm" variant="outline" onClick={logout}>Logout</Button>
+            </div>
           ) : (
-            <div className="flex gap-2 pt-2">
-              <Button variant="ghost" size="sm" asChild>
-                <Link href="/login">Login</Link>
-              </Button>
-              <Button variant="primary" size="sm" asChild>
-                <Link href="/register">Sign up</Link>
-              </Button>
+            <div className="flex items-center gap-2">
+              <Link href="/signup"><Button size="sm">Sign Up</Button></Link>
+              <Link href="/login"><Button size="sm" variant="ghost">Log In</Button></Link>
             </div>
           )}
         </div>
-      </div>
+      )}
     </header>
   );
 }

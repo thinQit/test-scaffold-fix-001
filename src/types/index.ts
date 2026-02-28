@@ -1,11 +1,7 @@
-export type TaskStatus = 'todo' | 'in_progress' | 'done';
-export type TaskPriority = 'low' | 'medium' | 'high';
-
 export interface User {
   id: string;
   email: string;
   name: string;
-  displayName?: string;
   role: 'customer' | 'admin';
   createdAt: string;
   updatedAt: string;
@@ -112,26 +108,6 @@ export interface DashboardStats {
   totalMenuItems: number;
 }
 
-export interface Task {
-  id: string;
-  ownerId: string;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface TaskSummary {
-  total: number;
-  completed: number;
-  overdue: number;
-  dueSoon: number;
-  byStatus: {
-    todo: number;
-    in_progress: number;
-    done: number;
-  };
-}
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+export type TaskPriority = 'low' | 'medium' | 'high';
+export type UserRole = 'customer' | 'admin';

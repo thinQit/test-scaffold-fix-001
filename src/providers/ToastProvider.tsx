@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             t.type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
           }`}>
             {t.message}
-            <button onClick={() => dismiss(t.id)} className="ml-2 font-bold" aria-label="Dismiss notification">×</button>
+            <button onClick={() => dismiss(t.id)} className="ml-2 font-bold" aria-label="Dismiss toast">×</button>
           </div>
         ))}
       </div>

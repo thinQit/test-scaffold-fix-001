@@ -1,70 +1,45 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import prisma from '@/lib/db';
-import { signAccessToken, verifyPassword } from '@/lib/auth';
+import db from '@/lib/db';
+import { signToken, verifyPassword } from '@/lib/auth';
 
 const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1)
+  email: z.string().email('Invalid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
-export async function POST(req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const body = await req.json();
-    const parsed = loginSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return NextResponse.json(
-        { success: false, error: parsed.error.flatten().formErrors.join(', ') },
-        { status: 400 }
-      );
-    }
-
-    const { email, password } = parsed.data;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const body = loginSchema.parse(await request.json());
+    const user = await db.user.findUnique({ where: { email: body.email } });
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials.' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const passwordValid = await verifyPassword(password, user.passwordHash);
-    if (!passwordValid) {
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials.' },
-        { status: 401 }
-      );
+    const valid = await verifyPassword(body.password, user.passwordHash);
+    if (!valid) {
+      return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const { token, expiresAt } = signAccessToken(user.id);
-    await prisma.authToken.create({
-      data: {
-        token,
-        userId: user.id,
-        expiresAt
-      }
-    });
+    const token = signToken({ sub: user.id, role: user.role });
 
     return NextResponse.json({
       success: true,
       data: {
+        token,
         user: {
           id: user.id,
+          name: user.name,
           email: user.email,
-          displayName: user.displayName
-        },
-        token
+          role: user.role,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString()
+        }
       }
     });
   } catch (error) {
-    console.error('Login error', error);
-    return NextResponse.json(
-      { success: false, error: 'Unable to login.' },
-      { status: 500 }
-    );
+    const message = error instanceof z.ZodError ? error.errors[0]?.message || 'Invalid input' : 'Login failed';
+    return NextResponse.json({ success: false, error: message }, { status: 400 });
   }
 }
-
-export default POST;

@@ -1,39 +1,30 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getTokenFromHeader, verifyToken } from '@/lib/auth';
+
 export const runtime = 'nodejs';
 
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { verifyAccessToken } from '@/lib/auth';
-
-const PUBLIC_PATHS = new Set([
-  '/api/health',
-  '/api/auth/login',
-  '/api/auth/register'
-]);
-
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-
-  if (!pathname.startsWith('/api')) {
+export function middleware(request: NextRequest) {
+  if (request.method === 'OPTIONS') {
     return NextResponse.next();
   }
 
-  if (PUBLIC_PATHS.has(pathname)) {
-    return NextResponse.next();
-  }
-
-  const authHeader = req.headers.get('authorization') || '';
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
-
-  if (!token) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const payload = verifyAccessToken(token);
-  if (!payload) {
-    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  const pathname = request.nextUrl.pathname;
+  if (pathname.startsWith('/api/auth/me') || pathname.startsWith('/api/admin')) {
+    const token = getTokenFromHeader(request.headers.get('authorization'));
+    if (!token) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+    try {
+      verifyToken(token);
+      return NextResponse.next();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Invalid token' }, { status: 401 });
+    }
   }
 
   return NextResponse.next();
 }
 
-export default middleware;
+export const config = {
+  matcher: ['/api/auth/me', '/api/admin/:path*']
+};

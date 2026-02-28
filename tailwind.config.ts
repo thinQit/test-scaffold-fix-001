@@ -13,10 +13,13 @@ const config: Config = {
         muted: 'var(--muted)',
         border: 'var(--border)',
         error: 'var(--error)',
-        success: 'var(--success)'
+        success: 'var(--success)',
+        'muted-foreground': '#64748b'
       },
       borderRadius: {
-        DEFAULT: 'var(--radius)'
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 2px)',
+        sm: 'calc(var(--radius) - 4px)'
       }
     }
   },

@@ -12,7 +12,6 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
   loading?: boolean;
   fullWidth?: boolean;
-  asChild?: boolean;
 }
 
 const variants: Record<Variant, string> = {
@@ -37,13 +36,10 @@ export function Button({
   fullWidth = false,
   disabled,
   className,
-  asChild,
   ...props
 }: ButtonProps) {
-  const Comp: React.ElementType = asChild ? 'span' : 'button';
-
   return (
-    <Comp
+    <button
       className={cn(
         'inline-flex items-center justify-center rounded-md font-medium transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2',
@@ -53,14 +49,12 @@ export function Button({
         fullWidth && 'w-full',
         className
       )}
-      aria-busy={loading}
-      aria-disabled={disabled || loading}
-      disabled={asChild ? undefined : disabled || loading}
+      disabled={disabled || loading}
       {...props}
     >
       {loading && <Spinner className="mr-2 h-4 w-4" />}
       {children}
-    </Comp>
+    </button>
   );
 }
 

@@ -9,9 +9,7 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "playwright test",
-    "prisma:generate": "prisma generate",
-    "prisma:push": "prisma db push"
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "next": "14.2.35",

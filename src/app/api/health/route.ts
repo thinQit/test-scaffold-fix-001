@@ -1,17 +1,23 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET() {
-  const uptimeSeconds = Math.floor(process.uptime());
-  const timestamp = new Date().toISOString();
+const VERSION = process.env.APP_VERSION || '1.0.0';
 
-  return NextResponse.json({
-    success: true,
-    data: {
-      status: 'ok',
-      uptimeSeconds,
-      timestamp
+export async function GET(request: NextRequest) {
+  try {
+    const full = request.nextUrl.searchParams.get('full') === 'true';
+    if (!full) {
+      return NextResponse.json({ success: true, data: { status: 'ok' } });
     }
-  });
-}
 
-export default GET;
+    return NextResponse.json({
+      success: true,
+      data: {
+        status: 'ok',
+        uptime_seconds: Math.floor(process.uptime()),
+        version: VERSION
+      }
+    });
+  } catch {
+    return NextResponse.json({ success: false, error: 'Health check failed' }, { status: 500 });
+  }
+}

@@ -1,81 +1,27 @@
-import bcryptjs from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { randomUUID } from 'crypto';
-import prisma from './db';
-import type { User } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import jwt, { type Secret, type SignOptions } from 'jsonwebtoken';
 
-export interface AuthTokenPayload {
-  sub: string;
-  jti: string;
-  iat?: number;
-  exp?: number;
-}
-
-const ACCESS_TOKEN_TTL_SECONDS = 60 * 60;
-
-function getJwtSecret(): string {
-  return process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || 'dev-secret-change-me';
-}
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'dev-secret-change-me';
 
 export async function hashPassword(password: string): Promise<string> {
-  return bcryptjs.hash(password, 10);
+  return bcrypt.hash(password, 10);
 }
 
 export async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcryptjs.compare(password, hash);
+  return bcrypt.compare(password, hash);
 }
 
-export function signAccessToken(userId: string): { token: string; jti: string; expiresAt: Date } {
-  const jti = randomUUID();
-  const expiresAt = new Date(Date.now() + ACCESS_TOKEN_TTL_SECONDS * 1000);
-  const token = jwt.sign({ sub: userId, jti }, getJwtSecret(), {
-    expiresIn: ACCESS_TOKEN_TTL_SECONDS
-  });
-  return { token, jti, expiresAt };
+export function signToken(payload: object): string {
+  const options: SignOptions = { expiresIn: '24h' };
+  return jwt.sign(payload, JWT_SECRET, options);
 }
 
-export function verifyAccessToken(token: string): AuthTokenPayload | null {
-  try {
-    return jwt.verify(token, getJwtSecret()) as AuthTokenPayload;
-  } catch {
-    return null;
-  }
+export function verifyToken(token: string): jwt.JwtPayload {
+  return jwt.verify(token, JWT_SECRET) as jwt.JwtPayload;
 }
 
-export function getBearerToken(req: Request): string | null {
-  const authHeader = req.headers.get('authorization');
+export function getTokenFromHeader(authHeader: string | null): string | null {
   if (!authHeader) return null;
-  if (!authHeader.startsWith('Bearer ')) return null;
-  return authHeader.slice(7);
+  const parts = authHeader.split(' ');
+  return parts[0] === 'Bearer' && parts[1] ? parts[1] : null;
 }
-
-export async function getAuthenticatedUser(
-  req: Request
-): Promise<{ user: User; token: string } | null> {
-  const token = getBearerToken(req);
-  if (!token) return null;
-
-  const payload = verifyAccessToken(token);
-  if (!payload?.sub) return null;
-
-  const tokenRecord = await prisma.authToken.findFirst({
-    where: {
-      token,
-      userId: payload.sub,
-      expiresAt: { gt: new Date() }
-    },
-    include: { user: true }
-  });
-
-  if (!tokenRecord) return null;
-  return { user: tokenRecord.user, token };
-}
-
-export default {
-  hashPassword,
-  verifyPassword,
-  signAccessToken,
-  verifyAccessToken,
-  getBearerToken,
-  getAuthenticatedUser
-};

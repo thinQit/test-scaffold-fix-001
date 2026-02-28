@@ -1,9 +1,9 @@
-import { HTMLAttributes } from 'react';
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
-type BadgeVariant = 'default' | 'secondary' | 'success' | 'warning' | 'error';
+type Variant = 'default' | 'secondary' | 'success' | 'warning' | 'error';
 
-const variants: Record<BadgeVariant, string> = {
+const variants: Record<Variant, string> = {
   default: 'bg-primary/10 text-primary',
   secondary: 'bg-neutral-100 text-neutral-600',
   success: 'bg-green-100 text-green-700',
@@ -11,13 +11,17 @@ const variants: Record<BadgeVariant, string> = {
   error: 'bg-red-100 text-red-700',
 };
 
-interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: BadgeVariant;
+interface BadgeProps {
+  children: ReactNode;
+  variant?: Variant;
+  className?: string;
 }
 
-export function Badge({ variant = 'default', className, ...props }: BadgeProps) {
+export function Badge({ children, variant = 'default', className }: BadgeProps) {
   return (
-    <span className={cn('inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium', variants[variant], className)} {...props} />
+    <span className={cn('inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium', variants[variant], className)}>
+      {children}
+    </span>
   );
 }
 

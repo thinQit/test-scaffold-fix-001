@@ -1,13 +1,15 @@
 import { cn } from '@/lib/utils';
-import { HTMLAttributes } from 'react';
 
-export function Spinner({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
+interface SpinnerProps {
+  className?: string;
+}
+
+export function Spinner({ className }: SpinnerProps) {
   return (
     <div
+      className={cn('h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-primary', className)}
       role="status"
-      aria-live="polite"
-      className={cn('animate-spin rounded-full border-2 border-muted border-t-primary', className)}
-      {...props}
+      aria-label="Loading"
     />
   );
 }

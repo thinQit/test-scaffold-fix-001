@@ -7,13 +7,11 @@ interface ApiResponse<T> {
 
 async function apiFetch<T>(url: string, options?: RequestInit): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(`${BASE_URL}${url}`,
-      {
-        headers: { 'Content-Type': 'application/json', ...options?.headers },
-        credentials: 'include',
-        ...options,
-      }
-    );
+    const res = await fetch(`${BASE_URL}${url}` as string, {
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      credentials: 'include',
+      ...options,
+    });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: res.statusText }));
       return { data: null, error: err.error || err.message || res.statusText };
